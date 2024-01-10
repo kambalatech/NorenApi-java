@@ -2123,7 +2123,7 @@ api.subscribe(['NSE|22', 'BSE|522032'])
 ```
     api.cancel_order(orderno=orderno)
 ```
-#### <a name="#md-limits"></a> Limits
+#### <a name="md-limits"></a> Limits
 
 
 
