@@ -2123,7 +2123,7 @@ api.subscribe(['NSE|22', 'BSE|522032'])
 ```
     api.cancel_order(orderno=orderno)
 ```
-#### <a name="Limits"></a> Limits
+#### <a name="#md-Limits"></a> Limits
 
 ```
    JSONObject get_limits = api.get_limits("NIKHESHP", "NIKHESHP"); 
