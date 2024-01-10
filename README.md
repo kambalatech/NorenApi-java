@@ -28,7 +28,7 @@ Orders and Trades
 - [cancel_order](#md-cancel_order)
 
 Limits
-- [Limits](#md-Limits)
+- [Limits](#md-limits)
 
 Example
 - [getting started](#md-example-basic)
@@ -2123,7 +2123,9 @@ api.subscribe(['NSE|22', 'BSE|522032'])
 ```
     api.cancel_order(orderno=orderno)
 ```
-#### <a name="#md-Limits"></a> Limits
+#### <a name="#md-limits"></a> Limits
+
+
 
 ```
    JSONObject get_limits = api.get_limits("NIKHESHP", "NIKHESHP"); 
