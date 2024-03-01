@@ -45,6 +45,10 @@ public class NorenExampleApp {
         book = api.get_trade_book(); 
         if(book != null)
             System.out.println(book.toString());
+        
+        book = api.get_position_book();
+        if(book != null)
+           System.out.println(book.toString());
             
         JSONArray ret1;
         String ret = api.login("FA30417", "Daiwik@7", "062869", "FA30417_U", "afb8bd097e59100b74dae729eb4386de", "java-");
