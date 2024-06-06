@@ -1467,15 +1467,8 @@ Sample Failure Response :
     "emsg":"Error Occurred : 5 \"no data\""
 }
 
-#### <a name="md-get_quotes"></a> get_quotes(exchange, token):
+#### <a name="md-get_quotes"></a> get_quotes(uid,exchange, token):
 gets the complete details and its properties 
-
-Example: 
-```
-exch  = 'NSE'
-token = '22'
-ret = api.get_quotes(exchange=exch, token=token)
-```
 
 Request Details :
 
