@@ -1733,7 +1733,7 @@ Sample Failure Response :
 }
 
 
-#### <a name="md-get_quotes"></a> get_quotes(exchange, token):
+#### <a name="md-get_quotes"></a> get_quotes(uid,exchange, token):
 gets the complete details and its properties 
 
 Request Details :
