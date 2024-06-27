@@ -322,57 +322,6 @@ Sample Failure Response :
    "emsg":"Rejected : ORA:Order not found to Cancel"
 }
 
-#### <a name="md-Basket_Margin"></a>Basket_Margin()
-
-Request Details :
-
-|Json Fields|Possible value|Description|
-| --- | --- | ---|
-|uid||User Id of the login user|
-|actid||Login users account ID|
-|exch||Exchange (Select from ‘ exarr ’ Array provided in User Details response)|
-|tsym||Unique id of contract on which order to be placed.|
-|qty||Order Quantity|
-|prc||Order Price|
-|prd||Product name|
-|trantype||B -> BUY, S -> SELL|
-|prctyp||User Id of the login user|
-|basketlists||User Id of the login user|
-
-|Json Fields of object in values Array|Possible value|Description|
-| --- | --- | ---|
-|exch||Exchange (Select from ‘ exarr ’ Array provided in User Details
-response)|
-|tsym||Unique id of contract on which order to be placed.|
-|qty||Order Quantity|
-|uid||User Id of the login user|
-|uid||User Id of the login user|
-|prc||Order Price|
-|prd||Product name|
-|trantype||B -> BUY, S -> SELL|
-|prctyp||User Id of the login user|
-
-Response Details :
-Response data will be in json format with below fields.
-|Json Fields|Possible value|Description|
-| --- | --- | ---|
-|stat|Ok or Not_Ok|Logout Success Or failure status|
-|request_time||It will be present only on successful logout.|
-|remarks||This field will contain rejection reason.|
-|marginused||Total margin used.|
-|marginusedtrade||Margin used after trade.|
-|emsg||This will be present only if Logout fails.|
-
-
-Sample Success Response :
-{
-    "request_time": "11:56:42 27-06-2024",
-    "stat": "Ok",
-    "marginused": "2720.45",
-    "marginusedtrade": "2720.45",
-    "marginusedprev": "0.00",
-    "remarks": ""
-}
 
 #### <a name="md-exit_order"></a> exit_order(orderno)
 exits a cover or bracket order
@@ -2309,6 +2258,57 @@ api.subscribe(['NSE|22', 'BSE|522032'])
 ```
 
 
+#### <a name="md-Basket_Margin"></a> Basket_Margin()
+
+Request Details :
+
+|Json Fields|Possible value|Description|
+| --- | --- | ---|
+|uid||User Id of the login user|
+|actid||Login users account ID|
+|exch||Exchange (Select from ‘ exarr ’ Array provided in User Details response)|
+|tsym||Unique id of contract on which order to be placed.|
+|qty||Order Quantity|
+|prc||Order Price|
+|prd||Product name|
+|trantype||B -> BUY, S -> SELL|
+|prctyp||User Id of the login user|
+|basketlists||User Id of the login user|
+
+|Json Fields of object in values Array|Possible value|Description|
+| --- | --- | ---|
+|exch||Exchange (Select from ‘ exarr ’ Array provided in User Details
+response)|
+|tsym||Unique id of contract on which order to be placed.|
+|qty||Order Quantity|
+|uid||User Id of the login user|
+|uid||User Id of the login user|
+|prc||Order Price|
+|prd||Product name|
+|trantype||B -> BUY, S -> SELL|
+|prctyp||User Id of the login user|
+
+Response Details :
+Response data will be in json format with below fields.
+|Json Fields|Possible value|Description|
+| --- | --- | ---|
+|stat|Ok or Not_Ok|Logout Success Or failure status|
+|request_time||It will be present only on successful logout.|
+|remarks||This field will contain rejection reason.|
+|marginused||Total margin used.|
+|marginusedtrade||Margin used after trade.|
+|emsg||This will be present only if Logout fails.|
+
+
+Sample Success Response :
+{
+    "request_time": "11:56:42 27-06-2024",
+    "stat": "Ok",
+    "marginused": "2720.45",
+    "marginusedtrade": "2720.45",
+    "marginusedprev": "0.00",
+    "remarks": ""
+}
 
 
 #### <a name="md-limits"></a> Limits
