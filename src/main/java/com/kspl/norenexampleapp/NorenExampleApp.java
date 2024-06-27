@@ -13,6 +13,10 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.ZoneOffset;
 import com.kspl.norenexampleapp.ExampleCallback;
+import com.noren.javaapi.BasketItem;
+import com.noren.javaapi.MainData;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  *
@@ -26,7 +30,7 @@ public class NorenExampleApp {
         
         String response = api.login("MOBKUMAR", "Qwe@1234", "01-01-1970", "IDART_DESK", "12be8cef3b1758f5", "java-");
         System.out.println(response);
-            
+        
         JSONObject search_reply = api.search("NSE", "TCS"); 
         System.out.println(search_reply.toString());
         
@@ -41,6 +45,25 @@ public class NorenExampleApp {
         
         JSONObject reply = api.place_order("B","I", "NSE", "CANBK-EQ", 1, 0, "LMT", 220.0, "java", null, null, null, null, null, null); 
         System.out.println(reply.toString());
+        
+        // Create basket items
+        BasketItem item1 = new BasketItem("NSE", "TATATECH-EQ", 1, 1053.7, "C", "B", "LMT");
+        BasketItem item2 = new BasketItem("NSE", "YESBANK-EQ", 1, 24.9795, "C", "B", "LMT");
+        
+        MainData basket= new MainData();
+        basket.exch="NSE";
+        basket.tsym="ACC-EQ";
+        basket.qty=1;
+        basket.prc=2720.445;
+        basket.prd="C";
+        basket.trantype="B";
+        basket.prctyp="LMT";
+        
+        // Add them to a list
+         basket.basketlists  = Arrays.asList(item1, item2);
+
+        JSONObject result = api.get_Basket_Margin(basket); 
+        System.out.println(result.toString());
         
         JSONArray book; 
         book = api.get_order_book();
