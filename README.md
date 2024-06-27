@@ -27,7 +27,7 @@ Orders and Trades
 - [place_order](#md-place_order)
 - [modify_order](#md-modify_order)
 - [cancel_order](#md-cancel_order)
-- [Basket_Margin] (#md-Basket_Margin)
+- [Basket_Margin](#md-Basket_Margin)
 
 Limits
 - [Limits](#md-limits)
