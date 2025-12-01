@@ -1,125 +1,196 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Project/Maven2/JavaApp/src/main/java/${packagePath}/${mainClassName}.java to edit this template
- */
-
 package com.kspl.norenexampleapp;
 
+import com.kspl.norenexampleapp.ExampleCallback;
 import com.noren.javaapi.NorenApiJava;
+import com.noren.javaapi.OAuthHandler;
+import com.noren.javaapi.NorenRoutes;
+import com.noren.javaapi.BasketItem;
+import com.noren.javaapi.MainData;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.awt.Desktop;
+import java.io.File;
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.time.ZoneOffset;
-import com.kspl.norenexampleapp.ExampleCallback;
-import com.noren.javaapi.BasketItem;
-import com.noren.javaapi.MainData;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.time.ZoneOffset;
 
-/**
- *
- * @author itsku
- */
 public class NorenExampleApp {
 
-    public static void main(String[] args) {
-        System.out.println("Hello and Welcome to Noren!");
-        NorenApiJava api = new com.noren.javaapi.NorenApiJava("http://kumra.kambala.co.in:9959/NorenWClient/","ws://kumra.kambala.co.in:9657/NorenWS/");
-        
-        String response = api.login("MOBKUMAR", "Qwe@1234", "01-01-1970", "IDART_DESK", "12be8cef3b1758f5", "java-");
-        System.out.println(response);
-        
-        JSONObject search_reply = api.search("NSE", "TCS"); 
-        System.out.println(search_reply.toString());
-        
-        JSONObject forgotpassword_OTP = api.forgotpassword_OTP("NIKHESHP", "AAAAA1234A"); 
-        System.out.println(forgotpassword_OTP.toString());
-        
-        JSONObject get_quotes = api.get_quotes("NIKHESHP", "NSE","22"); 
-        System.out.println(get_quotes.toString());        
-        
-        JSONObject get_limits = api.get_limits("NIKHESHP", "NIKHESHP"); 
-        System.out.println(get_limits.toString());
-        
-        JSONObject reply = api.place_order("B","I", "NSE", "CANBK-EQ", 1, 0, "LMT", 220.0, "java", null, null, null, null, null, null); 
-        System.out.println(reply.toString());
-        
-        // Create basket items
-        BasketItem item1 = new BasketItem("NSE", "TATATECH-EQ", 1, 1053.7, "C", "B", "LMT");
-        BasketItem item2 = new BasketItem("NSE", "YESBANK-EQ", 1, 24.9795, "C", "B", "LMT");
-        
-        MainData basket= new MainData();
-        basket.exch="NSE";
-        basket.tsym="ACC-EQ";
-        basket.qty=1;
-        basket.prc=2720.445;
-        basket.prd="C";
-        basket.trantype="B";
-        basket.prctyp="LMT";
-        
-        // Add them to a list
-         basket.basketlists  = Arrays.asList(item1, item2);
+    // Utility methods for safe printing
+    private static void printJson(String label, JSONObject json) {
+        if (json == null)
+            System.out.println("️" + label + " API returned null or failed.");
+        else
+            System.out.println("\n" + label + ":\n" + json.toString(2));
+    }
 
-        JSONObject result = api.get_Basket_Margin(basket); 
-        System.out.println(result.toString());
-        
-        JSONArray book; 
-        book = api.get_order_book();
-        System.out.println(book.toString());
-        
-        book = api.get_trade_book(); 
-        if(book != null)
-            System.out.println(book.toString());
-        
-        book = api.get_position_book();
-        if(book != null)
-           System.out.println(book.toString());
-            
-        JSONArray ret1;
-        String ret = api.login("FA30417", "Daiwik@7", "062869", "FA30417_U", "afb8bd097e59100b74dae729eb4386de", "java-");
-        if (ret != null) {
-            
-            LocalDateTime lastBusDay = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS);
-            if (lastBusDay.getDayOfWeek().getValue() == 6) {
-                lastBusDay = lastBusDay.minusDays(1);
-            } else if (lastBusDay.getDayOfWeek().getValue() == 7) {
-                lastBusDay = lastBusDay.minusDays(2);
-            }
-        System.out.println(lastBusDay.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")));
-            long starttime = System.currentTimeMillis();
-            System.out.println("The start time is :" + starttime);
-             lastBusDay = lastBusDay.minusDays(2);
-     
-           ret1  = api.get_time_price_series("NSE", "10794", Long.toString(lastBusDay.toEpochSecond(ZoneOffset.UTC)), "1674000000", null);
-           System.out.println("The time difference is :" + (System.currentTimeMillis()-starttime) );
-            if(ret1 != null)
-           System.out.println(ret1.toString());
-        ExampleCallback appcallback=new ExampleCallback();    
-        api.startwebsocket(appcallback);
-        api.subscribe("NSE|22");
+    private static void printArray(String label, JSONArray arr) {
+        if (arr == null)
+            System.out.println(" " + label + " API returned null or failed.");
+        else
+            System.out.println("\n" + label + ":\n" + arr.toString(2));
+    }
+
+    public static void main(String[] args) {
         try {
-                Thread.sleep(10000);  // Sleep for 2 seconds
-            } catch (InterruptedException e) {
-                System.err.println("Thread was interrupted: " + e.getMessage());
-                e.printStackTrace();
-            }
-        api.unsubscribe("NSE|22");
-        while(true){
+            System.out.println("🚀 Starting Noren API Test with OAuth...");
+
+            // --- Step 1: Load credentials ---
+            String credPath = new File("cred.properties").getAbsolutePath();
+            OAuthHandler oauth = new OAuthHandler(credPath);
+
+            // --- Step 2: Generate OAuth URL ---
+            String oauthUrl = oauth.getOAuthURL();
+            System.out.println("\n🔗 Opening browser for OAuth login...");
+            System.out.println("If it doesn’t open automatically, visit manually:\n" + oauthUrl);
+
             try {
-            Thread.sleep(2000); // sleep for 2 seconds
-        } catch (InterruptedException e) {
+                String os = System.getProperty("os.name").toLowerCase();
+                ProcessBuilder pb;
+
+                if (os.contains("win")) {
+                    pb = new ProcessBuilder("rundll32", "url.dll,FileProtocolHandler", oauthUrl);
+                } else if (os.contains("mac")) {
+                    pb = new ProcessBuilder("open", oauthUrl);
+                } else {
+                    // Linux / Unix
+                    pb = new ProcessBuilder("xdg-open", oauthUrl);
+                }
+
+                // 🚫 Suppress all output (stdout & stderr)
+                pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+                pb.redirectError(ProcessBuilder.Redirect.DISCARD);
+                pb.start();
+
+                //System.out.println("🌐 Browser opened");
+            } catch (Exception e) {
+                System.err.println("⚠️ Could not auto-open browser. Please open manually: " + oauthUrl);
+            }
+
+
+            // --- Step 3: Get authorization code from user ---
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("\n Enter the code from the redirect URL: ");
+            String code = scanner.nextLine();
+            scanner.close();
+
+            // --- Step 4: Exchange code for access + refresh token ---
+            NorenRoutes routes = new NorenRoutes();
+            Map<String, String> tokenInfo = oauth.getAccessToken(code, oauth.getBaseUrl(), routes);
+
+            if (tokenInfo == null || !tokenInfo.containsKey("access_token")) {
+                System.err.println(" Failed to fetch OAuth tokens. Exiting...");
+                return;
+            }
+
+            System.out.println("\n OAuth Tokens Generated:");
+            System.out.println("Access Token: " + tokenInfo.get("access_token"));
+            System.out.println("Refresh Token: " + tokenInfo.get("refresh_token"));
+            System.out.println("UID: " + tokenInfo.get("uid"));
+            System.out.println("Account ID: " + tokenInfo.get("actid"));
+
+            // --- Step 5: Initialize API ---
+            String baseApiUrl = oauth.getBaseUrl();
+            String websocketUrl = oauth.getWebsocketUrl();
+            System.out.println("🌐 Base API URL: " + baseApiUrl);
+            System.out.println("🔌 WebSocket URL: " + websocketUrl);
+
+            NorenApiJava api = new NorenApiJava(baseApiUrl, websocketUrl, oauth);
+
+            // --- Step 6: API Tests ---
+
+            // 6a. Search
+            printJson("📈 Search Response", api.search("NSE", "INFY"));
+
+            // 6b. Forgot password OTP
+            printJson("🔑 Forgot Password OTP Response", api.forgotpassword_OTP("NANDAN", "ABCDE1234N"));
+
+            // 6c. Get Quotes
+            printJson("📊 Quotes Response", api.get_quotes("NSE", "22"));
+
+            // 6d. Get Limits
+            printJson("💰 Limits Response", api.get_limits());
+
+            // 6e. Place Order
+            JSONObject orderReply = api.place_order(
+                    "B", "I", "NSE", "CANBK-EQ", 1, 0, "LMT",
+                    220.0, "Test Order", null, "DAY", "NO",
+                    null, null, null
+            );
+            printJson("🧾 Place Order Response", orderReply);
+
+            // 6f. Basket Items
+            BasketItem item1 = new BasketItem("NSE", "TATATECH-EQ", 1, 1053.7, "C", "B", "LMT");
+            BasketItem item2 = new BasketItem("NSE", "YESBANK-EQ", 1, 24.9795, "C", "B", "LMT");
+
+            MainData basket = new MainData();
+            basket.exch = "NSE";
+            basket.tsym = "ACC-EQ";
+            basket.qty = 1;
+            basket.prc = 2720.445;
+            basket.prd = "C";
+            basket.trantype = "B";
+            basket.prctyp = "LMT";
+            basket.basketlists = Arrays.asList(item1, item2);
+
+            printJson("📦 Basket Margin Response", api.get_Basket_Margin(basket));
+
+            // 6g. Order Book
+            printArray("📘 Order Book", api.get_order_book());
+
+            // 6h. Trade Book
+            printArray("📗 Trade Book", api.get_trade_book());
+
+            // 6i. Position Book
+            printArray("📙 Position Book", api.get_position_book());
+
+            // 6j. Time-Price Series
+            LocalDateTime lastBusDay = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS);
+            int day = lastBusDay.getDayOfWeek().getValue();
+            if (day == 6) lastBusDay = lastBusDay.minusDays(1);
+            else if (day == 7) lastBusDay = lastBusDay.minusDays(2);
+
+            System.out.println("📅 Fetching Time-Price Series for: " +
+                    lastBusDay.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")));
+
+            String startEpoch = "1761729005";
+            String endEpoch = "1761729905";
+
+            long startTime = System.currentTimeMillis();
+            JSONArray timePriceSeries = api.get_time_price_series("NSE", "1594", startEpoch, endEpoch, null);
+
+            if (timePriceSeries != null) {
+                System.out.println("\n⏱ Time-Price Series (Duration: " +
+                        (System.currentTimeMillis() - startTime) + " ms):\n" +
+                        timePriceSeries.toString(2));
+                System.out.println("\n✅ Time-Price Series fetched successfully!");
+            } else {
+                System.out.println("❌ Time-Price Series returned null or failed.");
+            }
+
+            // 6k. WebSocket example
+            ExampleCallback appCallback = new ExampleCallback();
+            api.startWebSocket(appCallback);
+            api.subscribe("NSE|22");
+            Thread.sleep(10000);
+            api.unsubscribe("NSE|22");
+
+            System.out.println("\n✅ All API tests completed successfully!");
+
+            while (true) {
+                Thread.sleep(2000);
+            }
+
+        } catch (Exception e) {
+            System.err.println("❌ Error: " + e.getMessage());
             e.printStackTrace();
         }
-        }
-        
-        
-                
-            } 
-        
-      
-        
-     
     }
 }

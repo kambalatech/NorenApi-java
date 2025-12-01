@@ -7,14 +7,16 @@ JavaApi used to connect to NorenOMS
 
 Maven project 
 
-add NorenApi-java-2.8.0.jar as a dependency
+add NorenApi-java-2.9.0.jar as a dependency
 
 
 ****
 
 ## API 
 ```NorenApi```
-- [login](#md-login)
+- [getOAuthURL](#md-getOAuthURL)
+- [getAccessToken](#md-getAccessToken)
+- [injectOAuthHeader](#md-injectOAuthHeader)
 - [logout](#md-logout)
 - [Forgot_Password_OTP](#md-forgotpasswordOTP)
 
@@ -36,61 +38,143 @@ Limits
 Example
 - [getting started](#md-example-basic)
 
-#### <a name="md-login"></a> login(userid, password, twoFA, vendor_code, api_secret, imei)
-connect to the broker, only once this function has returned successfully can any other operations be performed
+#### <a name="md-getOAuthURL"></a> getOAuthURL(oauth_url, client_id)
+Generate the OAuth login URL for the user to authenticate.
+Once the user logs in successfully in the browser, the broker redirects to a URL containing the authorization code, which is used in the next step to get access tokens.
 Example: 
 ```
-String response = api.login("MOBKUMAR", "Zxc@1234", "01-01-1970", "IDART_DESK", "12be8cef3b1758f5", "java-");
-System.out.println(response);
+String oauthLoginURL = oauth.getOAuthURL();
+System.out.println("Open this URL to login: " + oauthLoginURL);
 ```
 Request Details :
 
 |Json Fields|Possible value|Description|
 | --- | --- | ---|
-|apkversion*||Application version.|
-|uid*||User Id of the login user|
-|pwd*||Sha256 of the user entered password.|
-|factor2*||OTP or TOTP|
-|vc*||Vendor code provided by noren team, along with connection URLs|
-|appkey*||Sha256 of  uid|vendor_key|
-|imei*||Send mac if users logs in for desktop, imei is from mobile|
-|addldivinf||Optional field, Value must be in below format:|iOS - iosInfo.utsname.machine - iosInfo.systemVersion|Android - androidInfo.model - androidInfo.version|examples:|iOS - iPhone 8.0 - 9.0|Android - Moto G - 9 PKQ1.181203.01|
-|ipaddr||Optional field|
-|source|API||
+|oauth_url*||Base URL for OAuth login|
+|client_id*|App/Client ID from broker|Identifies your application for authentication|
 
 
 Response Details :
 
-
 |Json Fields|Possible value|Description|
 | --- | --- | ---|
-|stat|Ok or Not_Ok|Login Success Or failure status|
-|susertoken||It will be present only on login success. This data to be sent in subsequent requests in jKey field and web socket connection while connecting. |
-|lastaccesstime||It will be present only on login success.|
-|spasswordreset|Y |If Y Mandatory password reset to be enforced. Otherwise the field will be absent.|
-|exarr||Json array of strings with enabled exchange names|
-|uname||User name|
-|prarr||Json array of Product Obj with enabled products, as defined below.|
-|actid||Account id|
-|email||Email Id|
-|brkname||Broker id|
-|emsg||This will be present only if Login fails.|(Redirect to force change password if message is “Invalid Input : Password Expired” or “Invalid Input : Change Password”)|
+|url|OAuth login URL|Redirect URL where the user logs in to authorize the app|
 
 
 Sample Success Response :
 {
     "request_time": "20:18:47 19-05-2020",
     "stat": "Ok",
-    "susertoken": "3b97f4c67762259a9ded6dbd7bfafe2787e662b3870422ddd343a59895f423a0",
-    "lastaccesstime": "1589899727"
+    "url": "Oauth Login URL will be present here."
 }
 
 Sample Failure Response :
 {
     "request_time": "20:32:14 19-05-2020",
     "stat": "Not_Ok",
-    "emsg": "Invalid Input : Wrong Password"
+    "emsg": "Invalid Input : Invalid Client ID or Client ID missing"
 }
+
+
+#### <a name="md-getAccessToken"></a> getAccessToken(authCode, baseUrl, routes)
+Exchanges the authorization code obtained from OAuth login for an Access Token and Refresh Token.
+This function automatically uses the API_KEY and SECRET_KEY from the cred.properties file to generate a secure checksum.
+Only after this function succeeds can any other operation be performed.
+
+Example:
+```
+
+Map<String, String> tokenInfo = oauth.getAccessToken(
+    "3eedecac-3b8d-42f0-b141-58814f488e0c",
+    oauth.getBaseUrl(),
+    new NorenRoutes()
+);
+System.out.println("Access Token: " + tokenInfo.get("access_token"));
+System.out.println("Refresh Token: " + tokenInfo.get("refresh_token"));
+System.out.println("UID: " + tokenInfo.get("uid"));
+System.out.println("Account ID: " + tokenInfo.get("actid"));
+```
+
+Request Details:
+
+|Json Fields|Possible value|Description|
+| --- | --- | ---|
+|code*|Authorization code|Received from the redirected URL after successful OAuth login.|
+|checksum*|SHA256(API_KEY + SECRET_KEY + code)|Secure hash used to validate the request.|
+|uid*|User ID|User ID of the logged-in user.|
+|API_KEY*|Client ID|Application identifier stored in cred.properties.|
+|SECRET_KEY*|Secret Key|Used for secure hashing during token generation.|
+
+Response Details:
+
+|Json Fields|Possible value|Description|
+| --- | --- | ---|
+|stat|Ok or Not_Ok|Status of token generation.|
+|access_token|Random string|OAuth access token used for API calls.|
+|refresh_token|Random string|Token used to regenerate a new access token when expired.|
+|USERID|User ID|Logged-in user’s ID.|
+|actid|Account ID|Trading account ID of the user.|
+|emsg|Error message|Appears only if token generation fails.|
+
+
+Sample Success Response:
+{
+    "stat": "Ok",
+    "access_token": "a0da06b9e12bc3060ce282696f6e4ef7e90ebb34f40e1b0890fb959088edeb56",
+    "refresh_token": "651cfdea42b3f729867fbd9c5e040a81155c56be99c7b4e6d4720ddc1f3079b1",
+    "USERID": "NANDAN",
+    "actid": "NANDAN"
+}
+
+
+Sample Failure Response:
+{
+    "stat": "Not_Ok",
+    "emsg": "Invalid Input : Invalid or Expired Authorization Code"
+}
+
+
+
+#### <a name="md-injectOAuthHeader"></a> injectOAuthHeader(access_token)
+
+Automatically appends the required OAuth headers to all subsequent API requests.
+Used internally by the SDK for all authenticated endpoints (like get_order_book, get_trade_book, etc.).
+
+
+Example:
+```
+Map<String, String> headers = oauth.injectOAuthHeaders();
+System.out.println(headers);
+```
+
+Request Details:
+|Json Fields|Possible value|Description|
+| --- | --- | ---|
+|Authorization*|Bearer <access_token>|OAuth Bearer token for API authorization.|
+|Content-Type|application/json; charset=utf-8|Defines JSON as the request body format.|
+
+
+Response Details:
+|Json Fields|Possible value|Description|
+| --- | --- | ---|
+|Authorization|Bearer token|Added automatically in all HTTP headers.|
+|Content-Type|application/json|Format for subsequent API payloads.|
+
+
+Sample Success Response:
+{
+    "Authorization": "Bearer a0da06b9e12bc3060ce282696f6e4ef7e90ebb34f40e1b0890fb959088edeb56",
+    "Content-Type": "application/json; charset=utf-8"
+}
+
+
+Sample Failure Response:
+{
+    "stat": "Not_Ok",
+    "emsg": "Missing or Invalid Access Token. Please generate a new one using getAccessToken()."
+}
+
+
 
 #### <a name="md-logout"></a> logout()
 Terminate the session
@@ -2549,5 +2633,3 @@ Proprietary and confidential.
 All file transfers are logged.
 
 ****
-
-
