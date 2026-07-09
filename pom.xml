@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.kspl.norenexampleapp</groupId>
     <artifactId>NorenExampleApp</artifactId>
-    <version>1.1.0</version>
+    <version>1.0.4</version>
     <dependencies>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
@@ -18,7 +18,7 @@
         <dependency>
             <groupId>com.noren.javaapi</groupId>
             <artifactId>NorenApi-java</artifactId>
-            <version>2.9.0</version>
+            <version>1.0.4</version>
         </dependency>
     </dependencies>
     <properties>

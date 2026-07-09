@@ -175,6 +175,8 @@ public class NorenExampleApp {
                 System.out.println("❌ Time-Price Series returned null or failed.");
             }
 
+            printArray("Exchange Messages : \n", api.exch_msg("NSE"));
+
             // 6k. WebSocket example
             ExampleCallback appCallback = new ExampleCallback();
             api.startWebSocket(appCallback);
@@ -183,7 +185,6 @@ public class NorenExampleApp {
             api.unsubscribe("NSE|22");
 
             System.out.println("\n✅ All API tests completed successfully!");
-
             while (true) {
                 Thread.sleep(2000);
             }
